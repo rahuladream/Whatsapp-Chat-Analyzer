@@ -135,5 +135,21 @@ class ChatDecode:
         """
         Extract Timestamp
         """
+        timestamp = parser.parse(time_string)
+        return timestamp
 
 
+    def extract_url(self, body=""):
+        """
+        Check if chat contais a url
+        """
+        # pattern = r"https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+"
+        pattern = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,6}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+        
+        return re.findall(pattern, body)
+    
+    def get_domain(self, url=""):
+        domain = url[0].replace("http://", '')
+        domain = domain.replace("https://", '')
+        domain = domain.split("/")
+        return domain[0]
