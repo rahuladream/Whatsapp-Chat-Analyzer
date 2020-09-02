@@ -35,3 +35,16 @@ parser.add_argument(
     help='Debug mode',
     action='store_true'
 )
+
+args = parser.parse_args()
+
+"""
+READ CHAT FILE
+"""
+try:
+    with io.open(args.file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+except IOError as e:
+    print("File \{} not found. Please recheck file location and permissions".format(args.file))
+    sys.exit()
