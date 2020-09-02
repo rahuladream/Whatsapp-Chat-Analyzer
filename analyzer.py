@@ -10,6 +10,7 @@ import sys
 import emoji
 
 # Local Import
+from .chat_decode import ChatDecode
 
 
 
