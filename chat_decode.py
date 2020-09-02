@@ -31,7 +31,7 @@ class ChatDecode:
         self.isfollowingline = False
         self.isdeleted_chat  = False
         self.words           = []
-        self.emoji           = []
+        self.emojis          = []
         self.domains         = []
 
         self.parse_line(line)
@@ -42,12 +42,12 @@ class ChatDecode:
                 print(i , ':', self.__dict__[i])
             print("----------------")
         
-    def replace_bad_characters(self, line=""):
+    def replace_bad_character(self, line=""):
         # https://stackoverflow.com/questions/20078816/replace-non-ascii-characters-with-a-single-space
         return line.strip().replace(u"\u202a", "").replace(u"\u200e", "").replace(u"\u202c", "").replace(u"\xa0", " ")
     
 
-    def is_startingline(self, line=""):
+    def is_starting_line(self, line=""):
         """
         Starting line mean a line that started with date time
         Because there are multiple chat.
@@ -105,7 +105,7 @@ class ChatDecode:
             r".*This message was deleted$"
         ]
 
-        for p in p:
+        for p in pattern:
             match = re.match(p, body)
             if match:
                 return body
@@ -162,5 +162,145 @@ class ChatDecode:
         words = re.sub(r"[^\w]", " ",  string).split()
         
         return words
+    
+    def extract_emojis(self, string=""):
+        emj = []
+        for c in string:
+            if c in emoji.UNICODE_EMOJI:
+                emj.append(c)
+        return emj 
 
-        
+    
+    def is_event(self, body=""):
+        """Detect wether the body of chat is event log.
+        If the body if an event, it won't be count and the body of the message will not analized
+        Event log means note of event.
+        Below are known event log patterns in difference language
+        - Group created
+        - User joining group
+        - User left group
+        - Adding group member
+        - Removing group member
+        - Security code changed
+        - Phone number changed
+        -
+        Feel free to add similar pattern for other known pattern or language
+        Keyword arguments:
+        body -- body of exported chat
+        The Rule is:
+        Match the known event message
+        """
+        pattern_event = [
+            # Welcoming message
+            r"Messages to this group are now secured with end-to-end encryption\.$",  # EN
+            # User created group
+            r".+\screated this group$",  # EN
+            # User left group
+            r".+\sleft$",  # EN
+            r".+\skeluar$",  # ID
+            # User join group via inviation link
+            r".+\sjoined using this group's invite link$",  # EN
+            r".+\stelah bergabung menggunakan tautan undangan grup ini$",  # ID
+            # Admin adds member
+            r".+\sadded\s.+",  # EN
+            r".+\smenambahkan\s.+",  # ID
+            # Admin removes member
+            r".+\sremoved\s.+",  # EN
+            # Member's security code changed
+            r".+'s security code changed\.$",  # EN
+            # Member changes phone number
+            r".*changed their phone number to a new number. Tap to message or add the new number\.$"  # EN
+            r".*telah mengganti nomor teleponnya ke nomor baru. Ketuk untuk mengirim pesan atau menambahkan nomor baru\.$",  # ID
+        ]
+
+        for p in pattern_event:
+            match = re.match(p, body)
+            if match:
+                return match
+        return None
+    
+
+    def parse_line(self, line=""):
+        line = self.replace_bad_character(line)
+        # Check wether the line is starting line or following line
+        starting_line = self.is_starting_line(line)
+
+        if starting_line:
+            # Set startingline
+            self.is_startingline = True
+
+            # Extract timestamp
+            dt = self.extract_timestamp(starting_line.group(2).replace(".", ":"))
+            # Set timestamp
+            if dt:
+                self.timestamp = dt
+
+            # Body of the chat separated from timestamp
+            body = starting_line.group(18)
+            self.parse_body(body)
+
+        else:
+            # The line is following line
+            # Set following
+            self.is_followingline = True
+
+            # Check if previous line has sender
+            if self.previous_line and self.previous_line.sender:
+                # Set current line sender, timestamp same to previous line
+                self.sender = self.previous_line.sender
+                self.timestamp = self.previous_line.timestamp
+                self.line_type = "Chat"
+
+            body = line
+            self.body = line
+            self.parse_body(body, following=True)
+    
+
+    def parse_body(self, body="", following=False):
+        # Check wether the starting line is a chat or an event
+        chat = self.is_chat(body)
+
+        if chat or following:
+            # Set line type, sender and body
+            self.line_type = "Chat"
+            message_body = body
+            if not following:
+                self.sender = chat.group(1)
+                message_body = chat.group(3)
+
+            self.body = message_body
+
+            has_attachment = self.contains_attachment(message_body)
+            
+            if has_attachment:
+                # Set chat type to attachment
+                self.line_type = "Attachment"
+                
+            else:
+                if self.is_deleted(message_body):
+                    # Set deleted
+                    self.is_deleted_chat = True
+                else:
+                    words = message_body
+
+                    #URL & Domain
+                    urls = self.extract_url(message_body)
+                    if urls:
+                        for i in urls:
+                            # Exclude url from words
+                            words = words.replace(i[0], "")
+
+                            # Set domains
+                            self.domains.append(self.get_domain(i))
+                    
+                    # Set Words
+                    self.words = self.get_words(words)
+
+                    #Emoji
+                    emjs = self.extract_emojis(message_body)
+                    if emjs:
+                        self.emojis = emjs
+
+        elif self.is_event(body):
+            # Set line_type
+            self.line_type = "Event"

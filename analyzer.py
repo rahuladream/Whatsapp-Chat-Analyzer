@@ -10,7 +10,7 @@ import sys
 import emoji
 
 # Local Import
-from .chat_decode import ChatDecode
+from chat_decode import ChatDecode
 
 
 
@@ -62,7 +62,7 @@ chat_counter = {
     'timestamps': [],
     'words': [],
     'domains': [],
-    'emoji': [],
+    'emojis': [],
     'fav_emojis': [],
     'fav_words': []
 }
@@ -72,3 +72,54 @@ previous_line = None
 for line in lines:
     chatline = ChatDecode(line=line, previous_line=previous_line)
     previous_line = chatline
+
+    # Counter & Setter
+
+    if chatline.line_type == 'Chat':
+        chat_counter['chat_count'] += 1
+    
+    if chatline.line_type == 'Event':
+        chat_counter['event_count'] += 1
+    
+    if chatline.is_deleted:
+        chat_counter['deleted_chat_count'] += 1
+    
+
+    if chatline.sender is not None:
+        chat_counter['senders'].append(chatline.sender)
+        for i in chatline.emojis:
+            chat_counter['fav_emojis'].append((chatline.sender, i))
+        
+        for i in chatline.words:
+            chat_counter['fav_words'].append((chatline.sender, i))
+
+    if chatline.timestamp:
+        chat_counter['timestamps'].append(chatline.timestamp)
+
+    if len(chatline.words) > 0:
+        chat_counter['words'].extend(chatline.words)
+
+    if len(chatline.emojis) > 0:
+        chat_counter['emojis'].extend(chatline.emojis)
+
+    if len(chatline.domains) > 0:
+        chat_counter['domains'].extend(chatline.domains)
+
+
+"""
+REDUCE AND ORDER DATA
+"""
+
+def reduce_and_sort(data):
+    return sorted(
+        dict(
+            zip(
+                Counter(data).keys(),
+                Counter(data).values()
+            )
+        ).items(), key=lambda x: x[1],
+        reverse=True
+    )
+
+# import pdb; pdb.set_trace()
+print(reduce_and_sort(chat_counter))
