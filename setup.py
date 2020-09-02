@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
      name='wanalyzer',  
-     version='0.2',
+     version='0.4',
      scripts=['wanalyzer'] ,
      author="Rahul Singh",
      author_email="rahul.singh4800@gmail.com",
