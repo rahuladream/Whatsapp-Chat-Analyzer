@@ -8,6 +8,8 @@ Analyzing Whatsapp Chat (Personal &amp; Group)
 * Next step would be learn a model to predict the next chat 
 * Automate my text in real time
 
+https://img.shields.io/github/issues/rahuladream/Whatsapp-Chat-Analyzer
+
 ##### Supported Analysis
 ----------------------
 - Chat Count
