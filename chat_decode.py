@@ -77,3 +77,63 @@ class ChatDecode:
             return match
         
         return None
+
+    def is_chat(self, body=""):
+        """
+        Is Chat means the body of line is not an event
+        May contains attachment
+        
+        The rule is:
+        <contact><separator><message body>
+        """
+        pattern = r"""
+                ([^:]+)#Chat member
+                (:)   #Colon separator
+                (.+)  #One or more charachter of message content
+        """
+        match = re.match(re.compile(pattern, re.VERBOSE), body)
+        if match:
+            return match
+        
+        return None
+    
+    def is_deleted(self, body):
+        """
+        Is message deleted from chat
+        """
+        pattern = [
+            r".*This message was deleted$"
+        ]
+
+        for p in p:
+            match = re.match(p, body)
+            if match:
+                return body
+        return None
+    
+    def contains_attachment(self, body=""):
+        """
+        Classify attachement
+        """
+        pattern = [
+            r".*<Media omitted>$",
+            r".*image omitted$",
+            r".* video omitted$",
+             r".*document omitted$",
+            r".*Contact card omitted$",
+            r".*audio omitted$",
+            r".*GIF omitted$",
+            r".*sticker omitted$"
+        ]
+
+        for p in pattern:
+            if re.match(p, body):
+                return body
+        return None
+    
+    def extract_timestamp(self, time_string=""):
+        """
+        Extract Timestamp
+        """
+
+
