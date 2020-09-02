@@ -153,3 +153,14 @@ class ChatDecode:
         domain = domain.replace("https://", '')
         domain = domain.split("/")
         return domain[0]
+
+    def get_words(self, string=""):
+        
+        #remove dirty content
+        regex = re.sub(r"[^a-z\s]+", "", string.lower())
+        regex = re.sub(r'[^\x00-\x7f]',r'', regex)
+        words = re.sub(r"[^\w]", " ",  string).split()
+        
+        return words
+
+        
