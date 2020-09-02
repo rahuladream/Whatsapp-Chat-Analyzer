@@ -48,3 +48,26 @@ try:
 except IOError as e:
     print("File \{} not found. Please recheck file location and permissions".format(args.file))
     sys.exit()
+
+"""
+PARSING AND COUNTING
+"""
+
+chat_counter = {
+    'chat_count': 0,
+    'deleted_chat_count': 0,
+    'event_count': 0,
+    'senders': [],
+    'timestamps': [],
+    'words': [],
+    'domains': [],
+    'emoji': [],
+    'fav_emojis': [],
+    'fav_words': []
+}
+
+previous_line = None
+
+for line in lines:
+    chatline = ChatDecode(line=line, previous_line=previous_line)
+    previous_line = chatline
