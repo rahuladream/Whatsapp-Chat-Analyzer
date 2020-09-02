@@ -41,3 +41,39 @@ class ChatDecode:
             for i in self.__dict__:
                 print(i , ':', self.__dict__[i])
             print("----------------")
+        
+    def replace_bad_characters(self, line=""):
+        # https://stackoverflow.com/questions/20078816/replace-non-ascii-characters-with-a-single-space
+        return line.strip().replace(u"\u202a", "").replace(u"\u200e", "").replace(u"\u202c", "").replace(u"\xa0", " ")
+    
+
+    def is_startingline(self, line=""):
+        """
+        Starting line mean a line that started with date time
+        Because there are multiple chat.
+
+        The Rule is:
+        <datetime><seprator><Contact>
+        """
+        pattern = r"""
+            (\[?)       #Zero or one open square bracket '['
+            (((\d{1,2})   #1 to 2 digit date
+            (/|-)       #'/' or '-' separator
+            (\d{1,2})   #1 to 2 digit month
+            (/|-)       #'/' or '-' separator
+            (\d{2,4}))   #2 to 4 digit of year
+            (,?\s)      #Zero or one comma ',' and ingle space
+            ((\d{1,2})  #1 to 2 digit of hour
+            (:|\.)      #Colon ':' or dot '.' separator
+            (\d{2})     #2 digit of minute
+            (\.|:)?     #Zero or one of dot '.' or colon ':'
+            (\d{2})?    #Zero or one of 2 digits of second
+            (\s[AP]M)?))  #Zero or one of ('space', 'A' or 'P', and 'M'
+            (\]?\s-?\s?\s?)#Zero or one close square bracket ']', Zero or one (space and '-'), zero or one space
+            (.+)        #One or more character of chat member phone number or contact name
+        """
+        match = re.match(re.compile(pattern, re.VERBOSE), line)
+        if match:
+            return match
+        
+        return None
