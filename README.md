@@ -8,6 +8,18 @@ Analyzing Whatsapp Chat (Personal &amp; Group)
 * Next step would be learn a model to predict the next chat 
 * Automate my text in real time
 
+##### Supported Analysis
+----------------------
+- Chat Count
+- Chat Avaerage
+- Member/Sender Rank
+- Website/URL/Link Domain Rank
+- Word Count and Rank
+- Most Used Word by Sender
+- Emoji Usage Rank
+- Most Used Emoji by Sender
+- Timestamp Heatmap
+- Attachment Classification (In Android, there is no difference pattern for attachment. But in iOS we can actually classify between Image, Video, Audio, GIF, Sticker, Document, and Contact Card)
 
 ### Requirements
 ----------------------
